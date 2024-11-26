@@ -14,9 +14,11 @@ class VMP(object):
         self.h_mul = h_mul
         self.dim = dim
         self.via_points = via_points
+        self.device = device
         self.weight = torch.autograd.Variable(torch.randn(num_curves, b, dim).to(device), requires_grad=True)
         self.set_Riemannian_metric()
-
+        
+        
     def __call__(
         self,
         z: torch.tensor,
@@ -69,7 +71,7 @@ class VMP(object):
 
     def set_Riemannian_metric(self, num: int=10000):
         # homogeneous along dimension
-        z = torch.linspace(0, 1, num).view(1, -1, 1) # 1, num, 1
+        z = torch.linspace(0, 1, num).view(1, -1, 1).to(self.device) # 1, num, 1
         basis = self.Gaussian_basis(z) # (1, num, b)
         dq_dw = (z)*(1-z)*self.phi(basis) # (1, num, b)
         self.G = (dq_dw.permute(0, 2, 1)@dq_dw)/num # (1, b, b)
@@ -78,7 +80,7 @@ class VMP(object):
         '''
         H: q -> H(q): (bs, dim) -> (bs, dim, dim)]
         '''
-        z = torch.linspace(0, 1, num).view(1, -1, 1) # 1, num, 1
+        z = torch.linspace(0, 1, num).view(1, -1, 1).to(self.device) # 1, num, 1
         q = self(z) # (bs, num, dim)
         dim = q.size(-1)    
         H = H(q.view(-1, dim)).view(-1, num, dim, dim) # (bs, num, dim, dim)
